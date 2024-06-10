@@ -1,63 +1,61 @@
-const express = require("express");
-const path = require("path");
+const express = require('express')
+const path = require('path')
 
-const { open } = require("sqlite");
-const sqlite3 = require("sqlite3");
-const cors = require("cors");
+const {open} = require('sqlite')
+const sqlite3 = require('sqlite3')
 
-const app = express();
-app.use(express.json());
-app.use(cors());
+const app = express()
+app.use(express.json())
 
-const dbPath = path.join(__dirname, "goodreads.db");
+const dbPath = path.join(__dirname, 'goodreads.db')
 
-let db = null;
+let db = null
 
 const initializeDBAndServer = async () => {
   try {
     db = await open({
       filename: dbPath,
       driver: sqlite3.Database,
-    });
+    })
     app.listen(3001, () => {
-      console.log("Server Running at http://localhost:3000/");
-    });
+      console.log('Server Running at http://localhost:3000/')
+    })
   } catch (e) {
-    console.log(`DB Error: ${e.message}`);
-    process.exit(1);
+    console.log(`DB Error: ${e.message}`)
+    process.exit(1)
   }
-};
-initializeDBAndServer();
+}
+initializeDBAndServer()
 
 // Get Books API
-app.get("/books/", async (request, response) => {
+app.get('/books/', async (request, response) => {
   const getBooksQuery = `
     SELECT
       *
     FROM
       book
     ORDER BY
-      book_id;`;
-  const booksArray = await db.all(getBooksQuery);
-  response.send(booksArray);
-});
+      book_id;`
+  const booksArray = await db.all(getBooksQuery)
+  response.send(booksArray)
+})
 
 //Get Book API
-app.get("/books/:bookId/", async (request, response) => {
-  const { bookId } = request.params;
+app.get('/books/:bookId/', async (request, response) => {
+  const {bookId} = request.params
   const getBookQuery = `
     SELECT
       *
     FROM
       book
     WHERE
-      book_id = ${bookId};`;
-  const book = await db.get(getBookQuery);
-  response.send(book);
-});
+      book_id = ${bookId};`
+  const book = await db.get(getBookQuery)
+  response.send(book)
+})
 
-app.post("/books/", async (request, response) => {
-  const bookDetails = request.body;
+app.post('/books/', async (request, response) => {
+  const bookDetails = request.body
   const {
     title,
     authorId,
@@ -70,7 +68,7 @@ app.post("/books/", async (request, response) => {
     editionLanguage,
     price,
     onlineStores,
-  } = bookDetails;
+  } = bookDetails
   const addBookQuery = `
     INSERT INTO
       book (title,author_id,rating,rating_count,review_count,description,pages,date_of_publication,edition_language,price,online_stores)
@@ -87,16 +85,16 @@ app.post("/books/", async (request, response) => {
         '${editionLanguage}',
          ${price},
         '${onlineStores}'
-      );`;
+      );`
 
-  const dbResponse = await db.run(addBookQuery);
-  const bookId = dbResponse.lastID;
-  response.send({ bookId: bookId });
-});
+  const dbResponse = await db.run(addBookQuery)
+  const bookId = dbResponse.lastID
+  response.send({bookId: bookId})
+})
 
-app.put("/books/:bookId/", async (request, response) => {
-  const { bookId } = request.params;
-  const bookDetails = request.body;
+app.put('/books/:bookId/', async (request, response) => {
+  const {bookId} = request.params
+  const bookDetails = request.body
   const {
     title,
     authorId,
@@ -109,7 +107,7 @@ app.put("/books/:bookId/", async (request, response) => {
     editionLanguage,
     price,
     onlineStores,
-  } = bookDetails;
+  } = bookDetails
   const updateBookQuery = `
     UPDATE
       book
@@ -126,18 +124,18 @@ app.put("/books/:bookId/", async (request, response) => {
       price=${price},
       online_stores='${onlineStores}'
     WHERE
-      book_id = ${bookId};`;
-  await db.run(updateBookQuery);
-  response.send("Book Updated Successfully");
-});
+      book_id = ${bookId};`
+  await db.run(updateBookQuery)
+  response.send('Book Updated Successfully')
+})
 
-app.delete("/books/:bookId/", async (request, response) => {
-  const { bookId } = request.params;
+app.delete('/books/:bookId/', async (request, response) => {
+  const {bookId} = request.params
   const deleteBookQuery = `
     DELETE FROM
       book
     WHERE
-      book_id = ${bookId};`;
-  await db.run(deleteBookQuery);
-  response.send("Book Deleted Successfully");
-});
+      book_id = ${bookId};`
+  await db.run(deleteBookQuery)
+  response.send('Book Deleted Successfully')
+})
